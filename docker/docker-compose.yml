@@ -1,0 +1,45 @@
+version: '3.6'
+
+services:
+  depth_prediction_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      network: host      
+      args:
+        http_proxy: ${http_proxy}
+        https_proxy: ${https_proxy}
+    image: ${DOCKER_IMAGE_NAME}
+    shm_size: 32G
+    network_mode: host
+    expose: 
+      - ${sshd_port}
+    dns_search:
+      - cw01.contiwan.com
+    environment:
+      - DL_PLATFORM_ENVIRONMENT_TYPE=ONPREM
+      - no_proxy=github.conti.de,eu-test.artifactory.conti.de
+      - http_proxy=${http_proxy}
+      - https_proxy=${https_proxy}
+      - DISPLAY=$DISPLAY
+      - XAUTHORITY=/.Xauthority
+      - HOME=${HOME}
+      - ORIG_USER_GID=${ORIG_USER_GID}
+      - ORIG_DEV_GID=${ORIG_DEV_GID}
+      - USER=${USER}
+      - UID=${UID} # Needed by add_user script, For visibility one may have to `export UID` from bash
+      - sshd_port=${sshd_port}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/.Xauthority
+      - ${RAW_PATH}:${RAW_PATH}  # mount kitti raw data
+      - ${RGB_PATH}:/home/albert/data/kitti/kitti_rgb  # mount kitti rgb data
+      - ${DEPTH_PATH}:/home/albert/data/kitti/kitti_depth   # mount kitti depth data
+      - ${SEMSEG_PATH}:/home/albert/data/kitti/kitti_semseg   # mount kitti semseg data
+      - ../:${HOME}/depth_prediction/depth_prediction  # mount the code dict
+      - ../../results:${HOME}/depth_prediction/results  # mount the results dict
+    working_dir: ${HOME}/depth_prediction/depth_prediction
+    entrypoint:
+      - /usr/bin/tini
+      - "--"
+      - /add_user.sh
