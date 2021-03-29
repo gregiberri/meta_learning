@@ -89,7 +89,7 @@ class MiniImagenetDataset(Dataset):
                  string-names of the class
                  label_to_index: dictionary containing human understandable string mapped to numerical indexes
         """
-        dataset_dir = 'dataset_files'
+        dataset_dir = 'dataset_files/mini_imagenet'
         data_path_file = f"{dataset_dir}/{self.mode}_mini_imagenet_full_size.json"
         self.index_to_label_name_dict_file = f"{dataset_dir}/{self.mode}_map_to_label_name_mini_imagenet_full_size.json"
         self.label_name_to_map_dict_file = f"{dataset_dir}/{self.mode}_label_name_to_map_mini_imagenet_full_size.json"

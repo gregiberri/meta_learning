@@ -1,0 +1,76 @@
+id: "imagenet_base"
+env:
+  epochs: 10
+  target_epochs: 5
+  save_train_frequency: 2500
+  print_metrics: ['loss', 'accuracy']
+  result_dir: "../results"
+  learning_type: "transfer_learning"
+
+source_data:
+  name: "imagenet"
+  params:
+    learning_type: "transfer_learning"
+    batch_size: 64
+    iteration_number: 900000
+    image_channels: 3
+    num_classes: 1000
+    workers: 4
+    dataset_name: "mini_imagenet_full_size"
+    dataset_path: '../data/imagenet84'
+    load_into_memory: false
+    input_size: [84, 84]
+    input_channels: 3
+    indexes_of_folders_indicating_class: [-3, -2]
+    reverse_channels: false
+    small: false
+target_data:
+  name: "imagenet"
+  params:
+    learning_type: "transfer_learning"
+    batch_size: 64
+    iteration_number: null
+    image_channels: 3
+    num_classes: 1000
+    workers: 4
+    dataset_name: "mini_imagenet_full_size"
+    dataset_path: '../data/imagenet84'
+    load_into_memory: false
+    input_size: [84, 84]
+    input_channels: 3
+    indexes_of_folders_indicating_class: [-3, -2]
+    reverse_channels: false
+    labels_as_int: false
+    train_seed: 0
+    val_seed: 0
+    small: false
+
+model:
+  name: "resnet18"
+  params:
+    num_source_classes: 1000
+    num_target_classes: 100
+    loss:
+      name: "cross_entropy"
+
+source_optimizer:
+  name: 'radam'
+  params:
+    lr: 0.0001
+    weight_decay: 0.0005
+target_optimizer:
+  name: 'radam'
+  params:
+    lr: 0.0001
+    weight_decay: 0.0005
+
+source_lr_policy:
+  name: 'poly'
+  params:
+    gamma: 0.9
+    n_iteration: 300000
+target_lr_policy:
+  name: 'poly'
+  params:
+    gamma: 0.9
+    n_iteration: 500

@@ -22,19 +22,6 @@ class ConfigNamespace(object):
         else:
             raise ValueError('The constructor parameter of the ConfigNameSpace object should be a dict or a str path.')
 
-    def __getattribute__(self, attr):
-        """
-        Overwrite getattribute: return None for nonexistent attributes.
-        """
-        try:
-            return super(ConfigNamespace, self).__getattribute__(attr)
-        except KeyError:
-            parent_info = inspect.getouterframes(inspect.currentframe())[1]
-            logging.warning(f'The required config attribute: `{attr}` in {parent_info[1]} '
-                            f'line {parent_info[2]} does not exist, returned `None` instead.')
-            self.update({attr: None})
-            return self.__dict__[attr]
-
     def __len__(self):
         return len(self.__dict__)
 

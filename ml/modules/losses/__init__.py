@@ -7,6 +7,7 @@
 @File    : __init__.py
 """
 
+import torch.nn
 from ml.modules.losses.masked_l1_loss import MaskedL1Loss, MaskedL2Loss
 
 
@@ -17,3 +18,10 @@ def get_regression_loss(regression_loss):
         return MaskedL2Loss()
     else:
         raise ValueError(f'Wrong regression loss: {regression_loss}')
+
+
+def get_classification_loss(classification_loss):
+    if classification_loss.name == 'cross_entropy':
+        return torch.nn.CrossEntropyLoss()
+    else:
+        raise ValueError(f'Wrong classification loss: {classification_loss}')

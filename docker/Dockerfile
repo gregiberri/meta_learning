@@ -1,14 +1,12 @@
-FROM nvidia/cuda:11.0-cudnn8-runtime-ubuntu18.04
+FROM eu.artifactory.conti.de:6009/rose_base:1.2.0
 
 ARG no_proxy
 ARG http_proxy
 ARG https_proxy
 
-# Install some base apps
-RUN apt-get update 
-RUN apt-get install -y openssh-server wget nano libgl1-mesa-glx
+COPY . /train/static_code
 
-# Install miniconda
+# install miniconda
 RUN wget https://repo.continuum.io/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh -O ~/anaconda.sh && \
     /bin/bash ~/anaconda.sh -b -p /opt/conda && \
     rm ~/anaconda.sh && \
@@ -22,27 +20,42 @@ ARG TINI_VERSION=v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
 RUN chmod +x /usr/bin/tini
 
-WORKDIR /train/code
-
-# Add conf files
-COPY conf_files/depth_prediction_conda.yml conf_files/depth_prediction_conda.yml
+WORKDIR /train/static_code
 
 # Create the conda env
-RUN conda env create -f conf_files/depth_prediction_conda.yml &&  \
-    echo "conda activate depth_prediction_conda" >> ~/.bashrc
+RUN conda env create -f docker/conf_files/rose_conda_pytorch.yml &&  \
+    echo "conda activate rose_conda_pytorch" >> ~/.bashrc
+
+# Make RUN commands use the new environment:
+SHELL ["conda", "run", "-n", "rose_conda_pytorch", "/bin/bash", "-c"]
+
+# Install Rosé
+RUN pip install --cert docker/conf_files/CorporateITSecurity.crt --index-url https://eu.artifactory.conti.de/artifactory/api/pypi/c_adas_cip_pypi_v/simple rose
+
+# Make sure Rosé got installed properly
+RUN echo "Make sure Rosé is installed:"
+RUN python -c "import rose_ml; print(rose_ml.__version__)"
 
 # Copy the entrypoint for working on local machine
-COPY add_user.sh /add_user.sh
+COPY docker/add_user.sh /add_user.sh
 RUN chmod +x /add_user.sh
+
+# Copy the entrypoint for working on cluster
+COPY docker/entrypoint.sh /entrypoint
+RUN chmod +x /entrypoint
 
 # Add write permission to some folders 
 RUN chmod 777 /train && \
-    chmod 777 /opt/conda/envs/depth_prediction_conda && \
+    chmod 777 /opt/conda/envs/rose_conda_pytorch && \
     mkdir -p /.conda/envs/ && touch /.conda/envs/.conda_envs_dir_test && chmod 777 /.conda/envs/.conda_envs_dir_test
 
-COPY . .
+# Make sure Open3D works
+RUN apt-get update && apt install -y libgl1-mesa-glx
 
 # Steps to enable pycharm usage with the docker
+
+# Install openssh to enable ssh 
+RUN apt-get update && apt-get install -y openssh-server
 RUN mkdir /var/run/sshd
 
 RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
@@ -50,5 +63,4 @@ RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/
 
 RUN echo "export PYTHONAPTH=/train/code" >> /etc/profile
 
-# openh symbolic link for opencv to work
-RUN ln -s /opt/conda/envs/depth_prediction_conda/lib/libopenh264.so /opt/conda/envs/depth_prediction_conda/lib/libopenh264.so.5
+CMD /entrypoint

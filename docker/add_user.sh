@@ -28,8 +28,9 @@ usermod -a -G $ORIG_DEV_GID $USER
 addgroup --gid 1002594468 cube
 usermod -a -G 1002594468 $USER
 
-chown $USER $HOME
-chown -R $USER $HOME/depth_prediction/depth_prediction
+chown -R $USER /train/code
+chown -R $USER /train/static_code
+chown -R $USER /train/results
 
 # password set for ssh access in port forwarding 
 echo "Using port: ${sshd_port}"
