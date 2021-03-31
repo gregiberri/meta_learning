@@ -1,6 +1,6 @@
 id: "imagenet_simple"
 env:
-  epochs: 10
+  epochs: 15
   save_train_frequency: 2500
   print_metrics: ['loss', 'accuracy']
   result_dir: "../results"
