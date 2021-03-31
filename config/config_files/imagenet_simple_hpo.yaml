@@ -1,0 +1,48 @@
+id: "imagenet_simple"
+env:
+  epochs: 15
+  save_train_frequency: 2500
+  print_metrics: ['loss', 'accuracy']
+  result_dir: "../results"
+  learning_type: "simple_learning"
+
+target_data:
+  name: "imagenet"
+  params:
+    learning_type: "simple_learning"
+    batch_size: 64
+    iteration_number: null
+    image_channels: 3
+    num_classes: 1000
+    workers: 4
+    dataset_name: "mini_imagenet_full_size"
+    dataset_path: '../data/imagenet84'
+    load_into_memory: false
+    input_size: [84, 84]
+    input_channels: 3
+    indexes_of_folders_indicating_class: [-3, -2]
+    reverse_channels: false
+    labels_as_int: false
+    train_seed: 0
+    val_seed: 0
+    small: false
+
+model:
+  name: "resnet18"
+  params:
+    num_source_classes: 1000
+    num_target_classes: 100
+    loss:
+      name: "cross_entropy"
+
+optimizer:
+  name: 'radam'
+  params:
+    lr: ['loguniform', [0.0001, 0.001]]
+    weight_decay: ['loguniform', [0.0001, 0.001]]
+
+lr_policy:
+  name: 'poly'
+  params:
+    gamma: ['uniform', [0.6, 0.99]]
+    n_iteration: ['randint', [500, 50000]]

@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import inspect
-import logging
-
+from ray import tune
 import yaml
 
 yaml.Dumper.ignore_aliases = lambda *args: True
@@ -76,6 +74,14 @@ class ConfigNamespace(object):
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
+    def get_hpo_func(self, item):
+        if isinstance(item, list):
+            if isinstance(item[0], str):
+                if hasattr(tune, item[0]):
+                    function = getattr(tune, item[0])
+                    return function(*item[1])
+        return item
+
     def update(self, config):
         if isinstance(config, ConfigNamespace):
             config = config.__dict__
@@ -88,6 +94,7 @@ class ConfigNamespace(object):
             self.load(config['base_config'])
 
         for key, value in config.items():
+            value = self.get_hpo_func(value)
             # if value is a dict, we want to make a child confignamespace from it
             if isinstance(value, dict):
                 self.update({key: ConfigNamespace(value)})

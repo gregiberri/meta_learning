@@ -49,7 +49,8 @@ class Solver(object):
         # self.visualizer = Visualizer(self.writer)
 
     def init_results_dir(self):
-        self.result_dir = os.path.join(self.config.env.result_dir, self.config.id)
+        result_name = os.path.join(self.config.id, self.args.id_tag) if self.args.id_tag else self.config.id
+        self.result_dir = os.path.join(self.config.env.result_dir, result_name)
         if not os.path.exists(self.result_dir):
             os.makedirs(self.result_dir)
 

@@ -3,10 +3,7 @@ from ml.solvers.transfer_solver import TransferSolver
 
 
 def get_solver(config, args):
-    if args.mode == 'hpo':
-        raise NotImplementedError()
-
-    elif config.env.learning_type == 'simple_learning':
+    if config.env.learning_type == 'simple_learning':
         return SimpleSolver(config, args)
 
     elif config.env.learning_type == 'transfer_learning':
@@ -17,6 +14,7 @@ def get_solver(config, args):
 
     elif config.env.learning_type == 'meta_learning':
         raise NotImplementedError()
+
 
     else:
         raise ValueError(f'Wrong learning type: {config.env.learning_type}')

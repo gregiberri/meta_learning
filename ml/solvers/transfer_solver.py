@@ -101,6 +101,8 @@ class TransferSolver(Solver):
         else:
             raise ValueError(f'Wrong phase: {self.phase}')
 
+        return self.target_val_metric
+
     def train(self):
         start_mode = self.current_mode
         # start epoch
@@ -111,8 +113,6 @@ class TransferSolver(Solver):
             self.eval()
 
         self.writer.close()
-
-        return min(self.source_train_metric.epoch_results['accuracy'])  # best value
 
     def eval(self):
         self.current_mode = self.current_mode.split('_')[0] + '_val'

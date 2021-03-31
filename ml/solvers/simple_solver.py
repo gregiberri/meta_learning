@@ -3,6 +3,7 @@
 import inspect
 import logging
 import torch
+from ray import tune
 
 from ml.models.full_model import BaseModel
 from ml.optimizers import get_optimizer, get_lr_policy
@@ -77,6 +78,8 @@ class SimpleSolver(Solver):
         else:
             raise ValueError(f'Wrong phase: {self.phase}')
 
+        return self.target_val_metric
+
     def train(self):
         start_mode = self.current_mode
         # start epoch
@@ -85,10 +88,9 @@ class SimpleSolver(Solver):
             self.run_epoch()
 
             self.eval()
+            self.save_best_checkpoint()
 
         # self.writer.close()
-
-        return min(self.val_metric.epoch_results['accuracy'])  # best value
 
     def eval(self):
         self.current_mode = 'target_val'
