@@ -159,6 +159,14 @@ dependencies:
   - zlib=1.2.11=h7b6447c_3
   - zstd=1.4.5=h9ceee32_0
   - pip:
+    - ax-platform
+    - bayesian-optimization
+    - hpbandster
+    - ConfigSpace
+    - dragonfly-opt
+    - HEBO
+    - hyperopt
+    - scikit-optimize
     - addict==2.3.0
     - alabaster==0.7.12
     - astroid==2.4.2

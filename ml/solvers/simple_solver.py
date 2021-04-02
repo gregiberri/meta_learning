@@ -88,8 +88,7 @@ class SimpleSolver(Solver):
             self.run_epoch()
 
             self.eval()
-            self.save_best_checkpoint()
-
+            self.current_mode = start_mode
         # self.writer.close()
 
     def eval(self):
@@ -97,3 +96,4 @@ class SimpleSolver(Solver):
 
         with torch.no_grad():
             self.run_epoch()
+            self.save_best_checkpoint()

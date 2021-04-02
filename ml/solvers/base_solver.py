@@ -62,27 +62,53 @@ class Solver(object):
         return lrs
 
     def init_epochs(self):
+        """
+        This function should implement the epoch number initialization(s).
+        """
         raise NotImplementedError()
 
     def init_models(self):
+        """
+        This function should implement the model initialization(s).
+        """
         raise NotImplementedError()
 
     def init_optimizers(self):
+        """
+        This function should implement the optimizer initialization(s).
+        """
         raise NotImplementedError()
 
     def init_lr_policies(self):
+        """
+        This function should implement the learnin rate policy initialization(s).
+        """
         raise NotImplementedError()
 
     def init_dataloaders(self):
+        """
+        This function should implement the dataloader initialization(s).
+        """
         raise NotImplementedError()
 
     def init_metrics(self):
+        """
+        This function should implement the metric initialization(s).
+        """
         raise NotImplementedError()
 
     def load_checkpoint(self):
+        """
+        This function should implement the checkpoint loader initialization(s).
+        """
         raise NotImplementedError()
 
     def get_model_string(self):
+        """
+        This function should implement the string containing the current model`s name initialization(s).
+
+        :return model_str: string containing the current model`s name
+        """
         raise NotImplementedError()
 
     def _set_seed(self):

@@ -850,7 +850,7 @@ class WarmUpLR(_LRScheduler):
 class PolyLR(_LRScheduler):
 
     def __init__(self, optimizer, gamma=0.9, n_iteration=-1):
-        self.step_size = n_iteration
+        self.step_size = int(n_iteration)
         self.gamma = gamma
         super(PolyLR, self).__init__(optimizer)
 

@@ -1,25 +1,43 @@
-id: "imagenet_simple_hpo"
+id: "imagenet_transfer_hpo"
 env:
-  epochs: 15
+  epochs: 10
+  target_epochs: 5
   save_train_frequency: 2500
   print_metrics: ['loss', 'accuracy']
   result_dir: "../results"
-  learning_type: "simple_learning"
+  learning_type: "transfer_learning"
 
 hpo:
   num_samples: 50
   cpu_per_trial: 4
-  gpu_per_trial: 0.2
+  gpu_per_trial: 0.25
   hpo_algorithm:
     name: 'bayesian'
     params:
       metric: "_metric"
       mode: 'max'
 
+source_data:
+  name: "imagenet"
+  params:
+    learning_type: "transfer_learning"
+    batch_size: 64
+    iteration_number: 900000
+    image_channels: 3
+    num_classes: 1000
+    workers: 4
+    dataset_name: "mini_imagenet_full_size"
+    dataset_path: '../data/imagenet84'
+    load_into_memory: false
+    input_size: [84, 84]
+    input_channels: 3
+    indexes_of_folders_indicating_class: [-3, -2]
+    reverse_channels: false
+    small: false
 target_data:
   name: "imagenet"
   params:
-    learning_type: "simple_learning"
+    learning_type: "transfer_learning"
     batch_size: 64
     iteration_number: null
     image_channels: 3
@@ -45,13 +63,23 @@ model:
     loss:
       name: "cross_entropy"
 
-optimizer:
+source_optimizer:
+  name: 'radam'
+  params:
+    lr: ['loguniform', [0.0001, 0.005]]
+    weight_decay: ['loguniform', [0.0001, 0.001]]
+target_optimizer:
   name: 'radam'
   params:
     lr: ['loguniform', [0.0001, 0.005]]
     weight_decay: ['loguniform', [0.0001, 0.001]]
 
-lr_policy:
+source_lr_policy:
+  name: 'poly'
+  params:
+    gamma: ['uniform', [0.6, 0.99]]
+    n_iteration: ['uniform', [500, 50000]]
+target_lr_policy:
   name: 'poly'
   params:
     gamma: ['uniform', [0.6, 0.99]]

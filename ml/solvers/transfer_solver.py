@@ -111,8 +111,8 @@ class TransferSolver(Solver):
             self.run_epoch()
 
             self.eval()
-
-        self.writer.close()
+            self.current_mode = start_mode
+        # self.writer.close()
 
     def eval(self):
         self.current_mode = self.current_mode.split('_')[0] + '_val'
