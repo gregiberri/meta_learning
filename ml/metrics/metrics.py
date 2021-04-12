@@ -29,7 +29,7 @@ def compute_metric(output, target, loss):
 
 class Metrics(object):
 
-    def __init__(self, save_dir='', tag='train', niter=None):
+    def __init__(self, save_dir='', tag='train'):
         self.acc = AverageMeterList()
         self.loss = AverageMeterList()
 
@@ -38,7 +38,6 @@ class Metrics(object):
 
         self.save_dir = save_dir
         self.tag = tag
-        self.niter = niter
         self.make_metrics_file()
 
         self.n_stage = -1

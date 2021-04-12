@@ -342,14 +342,8 @@ class ImagenetDataset(Dataset):
         self.seed = seed
 
     def __getitem__(self, idx):
-        if self.config.learning_type == 'simple_learning':
+        if self.config.learning_type in ['transfer_learning', 'simple_learning', 'multitask_learning']:
             return self.get_transfer_dict(idx)
-
-        if self.config.learning_type in ['transfer_learning', 'simple_learning']:
-            return self.get_transfer_dict(idx)
-
-        elif self.config.learning_type == 'multitask_learning':
-            raise NotImplementedError()
 
         elif self.config.learning_type == 'meta_learning':
             support_set_images, target_set_image, support_set_labels, target_set_label, seed = \

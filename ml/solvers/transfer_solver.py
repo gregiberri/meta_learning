@@ -49,10 +49,10 @@ class TransferSolver(Solver):
         self.target_val_loader = get_dataloader(self.config.target_data, 'target_val')
 
     def init_metrics(self):
-        self.source_train_metric = Metrics(self.result_dir, tag='source_train', niter=len(self.source_train_loader))
-        self.source_val_metric = Metrics(self.result_dir, tag='source_val', niter=len(self.source_val_loader))
-        self.target_train_metric = Metrics(self.result_dir, tag='target_train', niter=len(self.target_train_loader))
-        self.target_val_metric = Metrics(self.result_dir, tag='target_val', niter=len(self.target_val_loader))
+        self.source_train_metric = Metrics(self.result_dir, tag='source_train')
+        self.source_val_metric = Metrics(self.result_dir, tag='source_val')
+        self.target_train_metric = Metrics(self.result_dir, tag='target_train')
+        self.target_val_metric = Metrics(self.result_dir, tag='target_val')
 
     def load_checkpoint(self):
         if self.args.resume:

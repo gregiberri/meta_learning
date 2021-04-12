@@ -1,21 +1,30 @@
-id: "imagenet_transfer"
+id: "imagenet_multitask_hpo"
 env:
-  epochs: 10
-  target_epochs: 5
+  epochs: 15
   save_train_frequency: 2500
   print_metrics: ['loss', 'accuracy']
   result_dir: "../results"
-  learning_type: "transfer_learning"
+  learning_type: "multitask_learning"
+
+hpo:
+  num_samples: 50
+  cpu_per_trial: 4
+  gpu_per_trial: 0.2
+  hpo_algorithm:
+    name: 'bayesian'
+    params:
+      metric: "_metric"
+      mode: 'max'
 
 source_data:
   name: "imagenet"
   params:
-    learning_type: "transfer_learning"
-    batch_size: 64
-    iteration_number: 900000
+    learning_type: "multitask_learning"
+    batch_size: ['uniform', [30, 64]]
+    iteration_number: null
     image_channels: 3
     num_classes: 700
-    workers: 0
+    workers: 4
     dataset_name: "mini_imagenet_full_size"
     dataset_path: '../data/imagenet84'
     load_into_memory: false
@@ -27,12 +36,12 @@ source_data:
 target_data:
   name: "imagenet"
   params:
-    learning_type: "transfer_learning"
-    batch_size: 64
+    learning_type: "multitask_learning"
+    batch_size: ['uniform', [1, 34]]
     iteration_number: null
     image_channels: 3
     num_classes: 100
-    workers: 0
+    workers: 4
     dataset_name: "mini_imagenet_full_size"
     dataset_path: '../data/imagenet84'
     load_into_memory: false
@@ -48,29 +57,22 @@ target_data:
 model:
   name: "resnet18"
   params:
+    data_weights: null
     num_source_classes: 700
     num_target_classes: 100
+    source_weight: ['uniform', [0.01, 1.0]]
+    target_weight: ['uniform', [0.01, 1.0]]
     loss:
       name: "cross_entropy"
 
-source_optimizer:
+multitask_optimizer:
   name: 'radam'
   params:
-    lr: 0.0001
-    weight_decay: 0.0005
-target_optimizer:
-  name: 'radam'
-  params:
-    lr: 0.0001
-    weight_decay: 0.0005
+    lr: ['loguniform', [0.0001, 0.005]]
+    weight_decay: ['loguniform', [0.0001, 0.001]]
 
-source_lr_policy:
+multitask_lr_policy:
   name: 'poly'
   params:
-    gamma: 0.9
-    n_iteration: 300000
-target_lr_policy:
-  name: 'poly'
-  params:
-    gamma: 0.9
-    n_iteration: 500
+    gamma: ['uniform', [0.6, 0.99]]
+    n_iteration: ['uniform', [500, 50000]]

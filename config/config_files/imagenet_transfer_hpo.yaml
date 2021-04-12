@@ -21,10 +21,10 @@ source_data:
   name: "imagenet"
   params:
     learning_type: "transfer_learning"
-    batch_size: 64
+    batch_size: ['uniform', [1, 64]]
     iteration_number: 900000
     image_channels: 3
-    num_classes: 1000
+    num_classes: 700
     workers: 4
     dataset_name: "mini_imagenet_full_size"
     dataset_path: '../data/imagenet84'
@@ -38,10 +38,10 @@ target_data:
   name: "imagenet"
   params:
     learning_type: "transfer_learning"
-    batch_size: 64
+    batch_size: ['uniform', [1, 64]]
     iteration_number: null
     image_channels: 3
-    num_classes: 1000
+    num_classes: 100
     workers: 4
     dataset_name: "mini_imagenet_full_size"
     dataset_path: '../data/imagenet84'
@@ -58,7 +58,7 @@ target_data:
 model:
   name: "resnet18"
   params:
-    num_source_classes: 1000
+    num_source_classes: 700
     num_target_classes: 100
     loss:
       name: "cross_entropy"

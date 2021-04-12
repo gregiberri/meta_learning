@@ -3,7 +3,6 @@
 import inspect
 import logging
 import torch
-from ray import tune
 
 from ml.models.full_model import BaseModel
 from ml.optimizers import get_optimizer, get_lr_policy
@@ -18,35 +17,67 @@ logging.basicConfig(format='[%(asctime)s %(levelname)s] %(message)s',
 RANDOM_SEED = 5
 
 
-class SimpleSolver(Solver):
-    def init_epochs(self):
-        self.target_epoch = 0
+class MergedDataset:
+    def __init__(self, source_train_loader, target_train_loader):
+        self.len = min(len(source_train_loader), len(target_train_loader))
 
-        self.target_epochs = self.config.env.epochs
+        self.source = iter(source_train_loader)
+        self.target = iter(target_train_loader)
+
+    def __getitem__(self, i):
+        source_data = next(self.source)
+        target_data = next(self.target)
+
+        datas = {key: [source_data[key], target_data[key]] for key in source_data.keys()}
+        datas['image'] = torch.cat(datas['image'], dim=0)
+
+        return datas
+
+    def __len__(self):
+        return self.len
+
+
+class MultitaskSolver(Solver):
+    def init_epochs(self):
+        self.epoch = 0
+        self.epochs = self.config.env.epochs
 
     def init_models(self):
-        self.target_model = BaseModel(self.config.model)
-        self.target_model.cuda()
-        self.model_input_keys = [p.name for p in inspect.signature(self.target_model.forward).parameters.values()]
+        self.config.model.params.data_split = [self.config.source_data.params.batch_size,
+                                               self.config.target_data.params.batch_size]
+
+        self.model = BaseModel(self.config.model)
+        self.model.cuda()
+        self.model_input_keys = [p.name for p in inspect.signature(self.model.forward).parameters.values()]
 
     def init_optimizers(self):
-        self.target_optimizer = get_optimizer(self.config.optimizer, self.target_model.parameters())
+        self.optimizer = get_optimizer(self.config.multitask_optimizer, self.model.parameters())
 
     def init_lr_policies(self):
-        self.target_lr_policy = get_lr_policy(self.config.lr_policy, optimizer=self.target_optimizer)
+        self.lr_policy = get_lr_policy(self.config.multitask_lr_policy, optimizer=self.optimizer)
 
     def init_dataloaders(self):
         # get dataloaders
+        self.source_train_loader = get_dataloader(self.config.source_data, 'source_train')
+        self.source_val_loader = get_dataloader(self.config.source_data, 'source_val')
         self.target_train_loader = get_dataloader(self.config.target_data, 'target_train')
         self.target_val_loader = get_dataloader(self.config.target_data, 'target_val')
 
+        self.multitask_train_loader = self.merge_dataloaders()
+
+    def merge_dataloaders(self):
+        dataloader = MergedDataset(self.source_train_loader, self.target_train_loader)
+
+        return dataloader
+
     def init_metrics(self):
-        self.target_train_metric = Metrics(self.result_dir, tag='target_train')
+        self.multitask_train_metric = Metrics(self.result_dir, tag='multitask_train')
+        self.source_val_metric = Metrics(self.result_dir, tag='source_val')
         self.target_val_metric = Metrics(self.result_dir, tag='target_val')
 
     def load_checkpoint(self):
         if self.args.resume:
-            self.current_mode = 'target_train'
+            self.current_mode = 'multitask_train'
             self.init_from_checkpoint()
 
     def get_model_string(self):
@@ -55,24 +86,23 @@ class SimpleSolver(Solver):
     def __getattribute__(self, item):
         if item in ['loader', 'metric']:
             item = self.current_mode + '_' + item
-        elif item in ['epoch', 'epochs', 'model', 'optimizer', 'lr_policy']:
-            item = self.current_mode.split('_')[0] + '_' + item
 
         return super(Solver, self).__getattribute__(item)
 
     def __setattr__(self, key, value):
         if key in ['loader', 'metric']:
             key = self.current_mode + '_' + key
-        elif key in ['epoch', 'epochs', 'model', 'optimizer', 'lr_policy']:
-            key = self.current_mode.split('_')[0] + '_' + key
 
         return super(Solver, self).__setattr__(key, value)
 
     def run(self):
         if self.phase == 'train':
-            self.current_mode = 'target_train'
+            self.current_mode = 'multitask_train'
             self.train()
-        elif self.phase == 'val':
+        elif self.phase == 'source_val':
+            self.current_mode = 'source_val'
+            self.eval()
+        elif self.phase == 'target_val':
             self.current_mode = 'target_val'
             self.eval()
         else:
@@ -85,6 +115,7 @@ class SimpleSolver(Solver):
         # start epoch
         for self.epoch in range(self.epoch, self.epochs):
             self.current_mode = start_mode
+            self.multitask_train_loader = self.merge_dataloaders()
             self.run_epoch()
 
             self.eval()

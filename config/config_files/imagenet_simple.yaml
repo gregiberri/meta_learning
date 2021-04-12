@@ -13,7 +13,7 @@ target_data:
     batch_size: 64
     iteration_number: null
     image_channels: 3
-    num_classes: 1000
+    num_classes: 100
     workers: 4
     dataset_name: "mini_imagenet_full_size"
     dataset_path: '../data/imagenet84'

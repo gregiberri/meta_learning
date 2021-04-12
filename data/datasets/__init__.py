@@ -18,13 +18,13 @@ def get_dataloader(data_config, mode):
         raise ValueError(f'Wrong dataset name: {data_config.name}')
 
     # calculate the iteration number for the tqdm
-    batch_size = data_config.params.batch_size if 'train' in mode else 1
+    batch_size = int(data_config.params.batch_size) if 'train' in mode else 1
 
     # make the torch dataloader object
     loader = DataLoader(dataset,
                         batch_size=batch_size,
                         num_workers=data_config.params.workers,
-                        drop_last=False,
+                        drop_last=True,
                         shuffle='train' in mode,
                         pin_memory=False)
 
