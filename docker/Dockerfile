@@ -23,18 +23,11 @@ RUN chmod +x /usr/bin/tini
 WORKDIR /train/static_code
 
 # Create the conda env
-RUN conda env create -f docker/conf_files/rose_conda_pytorch.yml &&  \
-    echo "conda activate rose_conda_pytorch" >> ~/.bashrc
+RUN conda env create -f docker/conf_files/metalearning_pytorch.yml &&  \
+    echo "conda activate metalearning_pytorch" >> ~/.bashrc
 
 # Make RUN commands use the new environment:
 SHELL ["conda", "run", "-n", "rose_conda_pytorch", "/bin/bash", "-c"]
-
-# Install Rosé
-RUN pip install --cert docker/conf_files/CorporateITSecurity.crt --index-url https://eu.artifactory.conti.de/artifactory/api/pypi/c_adas_cip_pypi_v/simple rose
-
-# Make sure Rosé got installed properly
-RUN echo "Make sure Rosé is installed:"
-RUN python -c "import rose_ml; print(rose_ml.__version__)"
 
 # Copy the entrypoint for working on local machine
 COPY docker/add_user.sh /add_user.sh
@@ -49,11 +42,7 @@ RUN chmod 777 /train && \
     chmod 777 /opt/conda/envs/rose_conda_pytorch && \
     mkdir -p /.conda/envs/ && touch /.conda/envs/.conda_envs_dir_test && chmod 777 /.conda/envs/.conda_envs_dir_test
 
-# Make sure Open3D works
-RUN apt-get update && apt install -y libgl1-mesa-glx
-
 # Steps to enable pycharm usage with the docker
-
 # Install openssh to enable ssh 
 RUN apt-get update && apt-get install -y openssh-server
 RUN mkdir /var/run/sshd

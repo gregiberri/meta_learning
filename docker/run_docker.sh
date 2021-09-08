@@ -3,18 +3,19 @@
 BASEDIR="$( cd "$(dirname "$0")" ; pwd -P )"
 
 export UID=$UID
+export ORIG_USER_GID=$(id -g $UID)
+export ORIG_DEV_GID=$(cat /etc/group | grep developers | cut -d: -f3)
 
 
 #################### change this for your project ###############################
-export RAW_PATH=/data_ssd/uia94835/kitti_raw 
-export DEPTH_PATH=/data_ssd/uia94835/kitti_depth
-export RGB_PATH=/data_ssd/uia94835/kitti_rgb-self-supervised-depth-completion/kitti-rgb 
+export IMAGENET_PATH=/raid/data/imagenet/
+export IMAGENET84_PATH=/raid/data/imagenet84/
 
-export RESULTS_PATH=../../results
+export RESULTS_PATH=/raid/pointcloud/meta_learning/results
+
 #################################################################################
 
 
-NUMBER="$1"
 
 # help function
 usage()
@@ -24,6 +25,9 @@ usage()
     -n, --number \t numbering in the name of the container \n \
     -h, --help \t help for usage \n"
 }
+
+# default port number
+sshd_port=1334
 
 # handle arguments
 while [ $# -gt 0 ]
@@ -37,10 +41,23 @@ case $key in
         echo "Use integer as number"
         exit
     fi
-    NUMBER="$2"
+    NUMBER="$2"       
     shift # past argument
     shift # past value
     ;;
+    
+    -p|--port)
+    if ! [[ "$2" =~ ^[0-9]+$ ]]
+    then
+        echo "Use integer as port"
+        exit
+    fi
+    echo this
+    sshd_port="$2"    
+    shift # past argument
+    shift # past value
+    ;;
+    
     -h|--help)
     usage
     exit
@@ -49,10 +66,10 @@ esac
 done
 
 # (remove) write out exited containers
-echo "Exited dockers: "$(docker ps -qa -f status=exited -f name="sr_self_sup")
+echo "Exited dockers: "$(docker ps -qa -f status=exited -f name="meta_learning")
 
 # read container numbers in use
-readarray -t a <<< "$(docker ps -a --format '{{.Names}}' | grep -oP sr_self_sup'.+?\K\d+$')"
+readarray -t a <<< "$(docker ps -a --format '{{.Names}}' | grep -oP meta_learning'.+?\K\d+$')"
 
 # add the number in the argument to the container or the next free number
 if [ -z ${NUMBER} ]; then 
@@ -93,11 +110,11 @@ else
 fi
 
 export NUMBER
-
+export sshd_port
 
 # Get the latest image name and use it to start the docker container
-export DOCKER_IMAGE_NAME=$(docker images | awk '/rose_cube/ {print $1":"$2}' | head -n 1)
+export DOCKER_IMAGE_NAME=$(docker images | awk '/meta_learning/ {print $1":"$2}' | head -n 1)
 echo "The newest docker image is: " $DOCKER_IMAGE_NAME
 
 # run the docker
-$BASEDIR/docker-compose -f $BASEDIR/docker-compose.yml run --name rc_sr_self_sup_${NUMBER} rc_sr_self_sup_service
+$BASEDIR/docker-compose -f $BASEDIR/docker-compose.yml run --name meta_learning_${NUMBER} meta_learning_service

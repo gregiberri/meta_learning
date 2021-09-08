@@ -4,7 +4,7 @@
 @Time    : 2020-05-04 23:07
 @Author  : Wang Xin
 @Email   : wangxin_buaa@163.com
-@File    : masked_l1_loss.py
+@File    : masked_loss.py
 """
 import torch
 
@@ -23,10 +23,10 @@ class MaskedL1Loss(object):
         if pred.shape != gt.shape:
             pred = interpolate(pred, size=gt.shape[-2:], mode="bilinear", align_corners=True)
 
-        valid_mask = (gt > 0).detach()
+        valid_mask = (gt != 0).detach()
         diff = gt - pred
         diff = diff[valid_mask]
-        self.loss = diff.abs().mean()
+        self.loss = diff.abs().sum()
         return self.loss
 
 
@@ -42,8 +42,8 @@ class MaskedL2Loss(object):
         if pred.shape != gt.shape:
             pred = interpolate(pred, size=gt.shape[-2:], mode="bilinear", align_corners=True)
 
-        valid_mask = (gt > 0).detach()
+        valid_mask = (gt != 0).detach()
         diff = gt - pred
         diff = diff[valid_mask]
-        self.loss = torch.sqrt(torch.pow(diff, 2).mean())
+        self.loss = torch.pow(diff, 2).sum()
         return self.loss

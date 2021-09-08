@@ -8,7 +8,7 @@
 """
 
 import torch.nn
-from ml.modules.losses.masked_l1_loss import MaskedL1Loss, MaskedL2Loss
+from ml.modules.losses.masked_loss import MaskedL1Loss, MaskedL2Loss
 
 
 def get_regression_loss(regression_loss):
